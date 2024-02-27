@@ -30,13 +30,8 @@ class Engine:
         score = 0
         for square in chess.SQUARES:
             piece = board.piece_at(square)
-            if board.turn == chess.WHITE:
-                if piece.color == chess.WHITE:
-                    score += self.PIECE_VALUES[piece.piece_type]
-                else:
-                    score -= self.PIECE_VALUES[piece.piece_type]
-            else:
-                if piece.color == chess.BLACK:
+            if piece is not None:
+                if piece.color == board.turn:
                     score += self.PIECE_VALUES[piece.piece_type]
                 else:
                     score -= self.PIECE_VALUES[piece.piece_type]
