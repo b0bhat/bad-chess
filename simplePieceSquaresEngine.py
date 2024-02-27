@@ -78,27 +78,23 @@ class Engine:
     def evaluate_board(self, board):
         total_value = 0
         for square, piece in board.piece_map().items():
-            if piece.color == chess.WHITE:
+            if piece.color == board.turn:
                 total_value += self.piece_values[piece.piece_type]
-                if piece.piece_type != chess.KING:  # Exclude king
-                    total_value += self.square_values[piece.piece_type][square // 8][square % 8]
-            else:
-                total_value -= self.piece_values[piece.piece_type]
-                if piece.piece_type != chess.KING:  # Exclude king
-                    total_value -= self.square_values[piece.piece_type][7 - square // 8][square % 8]
+                total_value += self.square_values[piece.piece_type][square // 8][square % 8]
         return total_value
+
     
     def play(self, board):
         legal_moves = list(board.legal_moves)
         random.shuffle(legal_moves)
-        best_move = None
-        best_value = float('-inf')
+        worst_move = None
+        min_eval = float('inf')
         for move in legal_moves:
             board.push(move)
-            value = self.evaluate_board(board)
-            if value > best_value:
-                best_value = value
-                best_move = move
+            eval = self.evaluate_board(board)
+            if eval < min_eval:
+                min_eval = eval
+                worst_move = move
             board.pop()
-        return best_move
+        return worst_move
 

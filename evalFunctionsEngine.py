@@ -11,12 +11,12 @@ class Engine:
         chess.KING: 100
     }
 
-    MOBILITY_WEIGHT = -0.1  # Changed to negative
-    PAWN_STRUCTURE_WEIGHT = -0.2  # Changed to negative
-    CENTER_CONTROL_WEIGHT = -0.2  # Changed to negative
-    KING_SAFETY_WEIGHT = -0.15  # Changed to negative
-    DEVELOPMENT_WEIGHT = -0.15  # Changed to negative
-    THREATS_WEIGHT = -0.2  # Changed to negative
+    MOBILITY_WEIGHT = -0.5
+    PAWN_STRUCTURE_WEIGHT = -0.8
+    CENTER_CONTROL_WEIGHT = -0.8
+    KING_SAFETY_WEIGHT = -0.6
+    DEVELOPMENT_WEIGHT = -0.6
+    THREATS_WEIGHT = -0.8
 
     def evaluate_board(self, board):
         score = 0
@@ -30,29 +30,35 @@ class Engine:
         score = 0
         for square in chess.SQUARES:
             piece = board.piece_at(square)
-            if piece is not None:
+            if board.turn == chess.WHITE:
                 if piece.color == chess.WHITE:
-                    score -= self.PIECE_VALUES[piece.piece_type]  # Changed to negative
+                    score += self.PIECE_VALUES[piece.piece_type]
                 else:
-                    score += self.PIECE_VALUES[piece.piece_type]  # Changed to negative
+                    score -= self.PIECE_VALUES[piece.piece_type]
+            else:
+                if piece.color == chess.BLACK:
+                    score += self.PIECE_VALUES[piece.piece_type]
+                else:
+                    score -= self.PIECE_VALUES[piece.piece_type]
         return score
 
     def evaluate_mobility(self, board):
-        white_mobility = len(list(board.legal_moves))
-        board.turn = not board.turn  # switch to opponent's turn
-        black_mobility = len(list(board.legal_moves))
-        board.turn = not board.turn  # switch back
-        return self.MOBILITY_WEIGHT * (black_mobility - white_mobility)  # Changed the order and sign
+        player_mobility = len(list(board.legal_moves))
+        board.turn = not board.turn
+        opponent_mobility = len(list(board.legal_moves))
+        board.turn = not board.turn
+        return self.MOBILITY_WEIGHT * (opponent_mobility - player_mobility)
 
     def evaluate_pawn_structure(self, board):
         score = 0
+        player_color = board.turn
         for square in chess.SQUARES:
             piece = board.piece_at(square)
             if piece is not None and piece.piece_type == chess.PAWN:
-                if piece.color == chess.WHITE:
-                    score -= 1  # Changed to negative
+                if piece.color == player_color:
+                    score -= 1
                 else:
-                    score += 1  # Changed to negative
+                    score += 1
         return self.PAWN_STRUCTURE_WEIGHT * score
 
     def evaluate_center_control(self, board):
@@ -61,24 +67,22 @@ class Engine:
         for square in center_squares:
             piece = board.piece_at(square)
             if piece is not None:
-                if piece.color == chess.WHITE:
-                    score -= 1  # Changed to negative
+                if piece.color == board.turn:
+                    score -= 1
                 else:
-                    score += 1  # Changed to negative
+                    score += 1
         return self.CENTER_CONTROL_WEIGHT * score
 
     def play(self, board):
         legal_moves = list(board.legal_moves)
         random.shuffle(legal_moves)
         worst_move = None
-        worst_value = float('inf')
+        min_eval = float('inf')
         for move in legal_moves:
             board.push(move)
-            value = self.evaluate_board(board)
-            if value < worst_value:
-                worst_value = value
+            eval = self.evaluate_board(board)
+            if eval < min_eval:
+                min_eval = eval
                 worst_move = move
             board.pop()
         return worst_move
-
-
