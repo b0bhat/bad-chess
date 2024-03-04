@@ -7,14 +7,16 @@ class Engine:
         self.visited_positions = set()
 
     def evaluate_board(self, board):
-        score = 0
-        for square in chess.SQUARES:
-            piece = board.piece_at(square)
-            if piece is not None:
-                if piece.color == board.turn:
-                    score += piece.piece_type
-                else:
-                    score -= piece.piece_type
+        if board.is_checkmate():
+            if board.turn == board.result():
+                return float('inf')
+            else:
+                return float('-inf')
+            
+        if board.is_stalemate() or board.is_insufficient_material() or board.is_fivefold_repetition():
+            return -100 
+        score = sum(piece.piece_type * (-1 if piece.color == board.turn else 1)
+                    for piece in board.piece_map().values())
         return score
     
     def alpha_beta(self, board, depth, alpha, beta, minimizing_player):
@@ -27,12 +29,12 @@ class Engine:
 
         legal_moves = list(board.legal_moves)
         if minimizing_player:
-            min_eval = float('-inf')  # Change this line
+            min_eval = float('inf')
             for move in legal_moves:
                 board.push(move)
                 eval = self.alpha_beta(board, depth - 1, alpha, beta, False)
                 board.pop()
-                min_eval = min(min_eval, eval)  # Change this line
+                min_eval = min(min_eval, eval)
                 beta = min(beta, eval)
                 if beta <= alpha:
                     break
@@ -54,18 +56,33 @@ class Engine:
 
     def play(self, board):
         legal_moves = list(board.legal_moves)
-        best_move = None
-        best_eval = float('inf')
+        ordered_moves = self.order_moves(board, legal_moves)
+        worst_move = None  
+        worst_eval = float('inf')  
         alpha = float('inf')
         beta = float('-inf')
-        for move in legal_moves:
+        for move in ordered_moves:
             board.push(move)
-            if board.fen() not in self.visited_positions:  # Check for repetition
+            if board.fen() not in self.visited_positions and not board.is_fivefold_repetition():  
                 eval = self.alpha_beta(board, self.depth - 1, alpha, beta, True)
-                if eval < best_eval:
-                    best_eval = eval
-                    best_move = move
+                if eval < worst_eval:  
+                    worst_eval = eval
+                    worst_move = move
                 alpha = max(alpha, eval)
             board.pop()
-        self.visited_positions.add(board.fen())  # Add current position to visited positions
-        return best_move
+        if worst_move is None:
+            # If no move that avoids a draw by repetition is found, just return any legal move
+            return legal_moves[0] if legal_moves else None
+        self.visited_positions.add(board.fen())  
+        return worst_move
+
+    def order_moves(self, board, moves):
+        ordered_moves = []
+        for move in moves:
+            if board.is_capture(move):
+                ordered_moves.insert(0, move)  # Capture moves come first
+            elif board.piece_at(move.from_square).piece_type == chess.PAWN:
+                ordered_moves.append(move)  # Pawn moves come last
+            else:
+                ordered_moves.insert(1, move)  # Other moves come after captures but before pawn moves
+        return ordered_moves

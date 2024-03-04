@@ -58,6 +58,7 @@ def play_game(engine_file1, engine_file2):
             break
 
     material_difference = material_balance(board)
+    print(str(board))
     print(f"Game Over: Game ended in {moves} moves with {material_difference} difference")
     return engine_scores
 
