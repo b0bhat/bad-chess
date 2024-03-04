@@ -12,6 +12,17 @@ def load_engine(engine_file):
     spec.loader.exec_module(engine_module)
     return engine_module.Engine
 
+def material_balance(board):
+    white = board.occupied_co[chess.WHITE]
+    black = board.occupied_co[chess.BLACK]
+    return (
+        chess.popcount(white & board.pawns) - chess.popcount(black & board.pawns) +
+        3 * (chess.popcount(white & board.knights) - chess.popcount(black & board.knights)) +
+        3 * (chess.popcount(white & board.bishops) - chess.popcount(black & board.bishops)) +
+        5 * (chess.popcount(white & board.rooks) - chess.popcount(black & board.rooks)) +
+        9 * (chess.popcount(white & board.queens) - chess.popcount(black & board.queens))
+    )
+
 def play_game(engine_file1, engine_file2):
     engine_class1 = load_engine(engine_file1)
     engine_class2 = load_engine(engine_file2)
@@ -20,16 +31,34 @@ def play_game(engine_file1, engine_file2):
     board = chess.Board()
     engines = [engine1, engine2]
     engine_scores = [0, 0]
+    moves = 0
     
     while not board.is_game_over():
         turn = board.turn
         move = engines[int(turn)].play(board)
         board.push(move)
+        moves += 1
         
-        if board.is_checkmate():
+        if board.is_fivefold_repetition():
+            print("Game Over: Draw by fivefold repetition.")
+            break
+        elif board.is_insufficient_material():
+            print("Game Over: Draw due to insufficient material.")
+            break
+        elif board.is_seventyfive_moves():
+            print("Game Over: Draw by seventy-five moves rule.")
+            break
+        elif board.is_checkmate():
             winner = int(not turn)
             engine_scores[winner] += 1
-    
+            print(f"Game Over: {engine_file1 if winner == 0 else engine_file2} wins in {moves} moves.")
+            break
+        elif board.is_stalemate():
+            print(f"Game Over: Draw by stalemate in {moves} moves.")
+            break
+
+    material_difference = material_balance(board)
+    print(f"Game Over: Game ended in {moves} moves with {material_difference} difference")
     return engine_scores
 
 async def run_games(engine_file1, engine_file2, num_games):
