@@ -14,17 +14,16 @@ class Engine:
     MOBILITY_WEIGHT = -0.5
     PAWN_STRUCTURE_WEIGHT = -0.8
     CENTER_CONTROL_WEIGHT = -0.8
-    KING_SAFETY_WEIGHT = -0.6
     DEVELOPMENT_WEIGHT = -0.6
     THREATS_WEIGHT = -0.8
 
     def evaluate_board(self, board):
         score = 0
-        score += self.evaluate_material(board)
-        score += self.evaluate_mobility(board)
-        score += self.evaluate_pawn_structure(board)
-        score += self.evaluate_center_control(board)
-        score += self.evaluate_checkmate(board)
+        score += self.evaluate_material(self, board)
+        score += self.evaluate_mobility(self, board)
+        score += self.evaluate_pawn_structure(self, board)
+        score += self.evaluate_center_control(self, board)
+        score += self.evaluate_checkmate(self, board)
         return score
 
     def evaluate_material(self, board):
