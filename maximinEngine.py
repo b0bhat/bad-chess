@@ -1,7 +1,7 @@
 import chess
 
 class Engine:
-    def __init__(self, depth=4):
+    def __init__(self, depth=5):
         self.depth = depth
         self.transposition_table = {}
         self.visited_positions = set()
@@ -14,10 +14,21 @@ class Engine:
                 return float('-inf')
             
         if board.is_stalemate() or board.is_insufficient_material() or board.is_fivefold_repetition():
-            return -100 
-        score = sum(piece.piece_type * (-1 if piece.color == board.turn else 1)
-                    for piece in board.piece_map().values())
+            return float('-inf')
+        score = 0
+        for piece in board.piece_map().values():
+            if self.depth % 2 != 0:
+                if piece.color == board.turn:
+                    score += piece.piece_type
+                else:
+                    score -= piece.piece_type
+            else:
+                if piece.color == board.turn:
+                    score -= piece.piece_type
+                else:
+                    score += piece.piece_type
         return score
+
     
     def alpha_beta(self, board, depth, alpha, beta, minimizing_player):
         if depth == 0 or board.is_game_over():
@@ -71,7 +82,6 @@ class Engine:
                 alpha = max(alpha, eval)
             board.pop()
         if worst_move is None:
-            # If no move that avoids a draw by repetition is found, just return any legal move
             return legal_moves[0] if legal_moves else None
         self.visited_positions.add(board.fen())  
         return worst_move
@@ -80,9 +90,9 @@ class Engine:
         ordered_moves = []
         for move in moves:
             if board.is_capture(move):
-                ordered_moves.insert(0, move)  # Capture moves come first
+                ordered_moves.insert(0, move)
             elif board.piece_at(move.from_square).piece_type == chess.PAWN:
-                ordered_moves.append(move)  # Pawn moves come last
+                ordered_moves.append(move)
             else:
-                ordered_moves.insert(1, move)  # Other moves come after captures but before pawn moves
+                ordered_moves.insert(1, move)
         return ordered_moves

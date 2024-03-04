@@ -11,21 +11,15 @@ class Engine:
         chess.KING: 100
     }
    
-    def evaluate_board(self, board):
+    def evaluate_material(self, board):
         score = 0
         for square in chess.SQUARES:
             piece = board.piece_at(square)
             if piece is not None:
-                if board.turn == chess.WHITE:
-                    if piece.color == chess.WHITE:
-                        score += self.PIECE_VALUES[piece.piece_type]
-                    else:
-                        score -= self.PIECE_VALUES[piece.piece_type]
+                if piece.color == board.turn:
+                    score += self.PIECE_VALUES[piece.piece_type]
                 else:
-                    if piece.color == chess.BLACK:
-                        score += self.PIECE_VALUES[piece.piece_type]
-                    else:
-                        score -= self.PIECE_VALUES[piece.piece_type]
+                    score -= self.PIECE_VALUES[piece.piece_type]
         return score
     
     def play(self, board):

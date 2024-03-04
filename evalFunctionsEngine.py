@@ -24,6 +24,7 @@ class Engine:
         score += self.evaluate_mobility(board)
         score += self.evaluate_pawn_structure(board)
         score += self.evaluate_center_control(board)
+        score += self.evaluate_checkmate(board)
         return score
 
     def evaluate_material(self, board):
@@ -43,6 +44,14 @@ class Engine:
         opponent_mobility = len(list(board.legal_moves))
         board.turn = not board.turn
         return self.MOBILITY_WEIGHT * (opponent_mobility - player_mobility)
+    
+    def evaluate_checkmate(self, board):
+        if board.is_checkmate():
+            if board.turn == board.result():
+                return float('inf')
+            else:
+                return float('-inf')
+        return 0
 
     def evaluate_pawn_structure(self, board):
         score = 0
