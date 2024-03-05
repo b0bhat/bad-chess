@@ -5,6 +5,7 @@ import asyncio
 import concurrent.futures
 import time
 import multiprocessing
+import random
 
 def load_engine(engine_file):
     spec = importlib.util.spec_from_file_location("engine", engine_file)
@@ -26,6 +27,12 @@ def material_balance(board):
 def play_game(engine_file1, engine_file2):
     engine_class1 = load_engine(engine_file1)
     engine_class2 = load_engine(engine_file2)
+    # if random.random() < 0.5:
+    #     engine1 = engine_class1()
+    #     engine2 = engine_class2()
+    # else:
+    #     engine2 = engine_class1()
+    #     engine1 = engine_class2()
     engine1 = engine_class1()
     engine2 = engine_class2()
     board = chess.Board()
@@ -85,7 +92,7 @@ if __name__ == "__main__":
     engine_file1 = sys.argv[1]
     engine_file2 = sys.argv[2]
     num_games = int(sys.argv[3]) if len(sys.argv) >= 4 else 10
-    verbose = int(sys.argv[4]) if len(sys.argv) >= 5 else False
+    verbose = bool(sys.argv[4]) if len(sys.argv) >= 5 else False
     
     start_time = time.time()
     asyncio.run(run_games(engine_file1, engine_file2, num_games))

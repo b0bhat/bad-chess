@@ -10,3 +10,7 @@ Current list:
 - `maximinEvalEngine`: Additional evaluation functions added to previous minimax algorithm.
 
 To run: `python tester.py <engine1> <engine2> <int number of rounds> <bool verbose>`
+
+Ideas
+- Maximize opponent responses
+- opponent killer move heuristics

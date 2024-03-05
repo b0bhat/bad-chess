@@ -1,15 +1,16 @@
 import chess
 import evalFunctionsEngine
+import random
 
 class Engine:
-    def __init__(self, depth=5):
+    def __init__(self, depth=6):
         self.depth = depth
         self.transposition_table = {}
         self.visited_positions = set()
     
     def alpha_beta(self, board, depth, alpha, beta, minimizing_player):
         if depth == 0 or board.is_game_over():
-            return evalFunctionsEngine.Engine.evaluate_board(evalFunctionsEngine.Engine, board)
+            return evalFunctionsEngine.Engine.evaluate_board(evalFunctionsEngine.Engine, board, self.depth)
 
         key = board.fen()
         if key in self.transposition_table:
@@ -44,6 +45,7 @@ class Engine:
 
     def play(self, board):
         legal_moves = list(board.legal_moves)
+        random.shuffle(legal_moves)
         ordered_moves = self.order_moves(board, legal_moves)
         worst_move = None  
         worst_eval = float('inf')  

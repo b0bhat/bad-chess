@@ -17,14 +17,24 @@ class Engine:
     DEVELOPMENT_WEIGHT = -0.6
     THREATS_WEIGHT = -0.8
 
-    def evaluate_board(self, board):
+    def evaluate_board(self, board, depth):
         score = 0
-        score += self.evaluate_material(self, board)
+        score += self.evaluate_material_depth(self, board, depth)
         score += self.evaluate_mobility(self, board)
         score += self.evaluate_pawn_structure(self, board)
         score += self.evaluate_center_control(self, board)
         score += self.evaluate_checkmate(self, board)
         return score
+    
+    def evaluate_board_self(self, board):
+        score = 0
+        score += self.evaluate_material(board)
+        score += self.evaluate_mobility(board)
+        score += self.evaluate_pawn_structure(board)
+        score += self.evaluate_center_control(board)
+        score += self.evaluate_checkmate(board)
+        return score
+
 
     def evaluate_material(self, board):
         score = 0
@@ -35,6 +45,21 @@ class Engine:
                     score += self.PIECE_VALUES[piece.piece_type]
                 else:
                     score -= self.PIECE_VALUES[piece.piece_type]
+        return score
+    
+    def evaluate_material_depth(self, board, depth):
+        score = 0
+        for piece in board.piece_map().values():
+            if depth % 2 != 0:
+                if piece.color == board.turn:
+                    score += piece.piece_type
+                else:
+                    score -= piece.piece_type
+            else:
+                if piece.color == board.turn:
+                    score -= piece.piece_type
+                else:
+                    score += piece.piece_type
         return score
 
     def evaluate_mobility(self, board):
@@ -83,7 +108,7 @@ class Engine:
         min_eval = float('inf')
         for move in legal_moves:
             board.push(move)
-            eval = self.evaluate_board(board)
+            eval = self.evaluate_board_self(board)
             if eval < min_eval:
                 min_eval = eval
                 worst_move = move

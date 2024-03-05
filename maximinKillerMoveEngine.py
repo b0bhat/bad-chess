@@ -1,4 +1,5 @@
 import chess
+import evalFunctionsEngine
 import random
 
 class Engine:
@@ -6,40 +7,21 @@ class Engine:
         self.depth = depth
         self.transposition_table = {}
         self.visited_positions = set()
-
-    def evaluate_board(self, board):
-        if board.is_checkmate():
-            if board.turn == board.result():
-                return float('inf')
-            else:
-                return float('-inf')
-            
-        if board.is_stalemate() or board.is_insufficient_material() or board.is_fivefold_repetition():
-            return float('-inf')
-        score = 0
-        for piece in board.piece_map().values():
-            if self.depth % 2 != 0:
-                if piece.color == board.turn:
-                    score += piece.piece_type
-                else:
-                    score -= piece.piece_type
-            else:
-                if piece.color == board.turn:
-                    score -= piece.piece_type
-                else:
-                    score += piece.piece_type
-        return score
-
+        self.killer_moves = [[None for _ in range(2)] for _ in range(depth)]
     
     def alpha_beta(self, board, depth, alpha, beta, minimizing_player):
         if depth == 0 or board.is_game_over():
-            return self.evaluate_board(board)
+            return evalFunctionsEngine.Engine.evaluate_board(evalFunctionsEngine.Engine, board)
 
         key = board.fen()
         if key in self.transposition_table:
             return self.transposition_table[key]
 
         legal_moves = list(board.legal_moves)
+
+        if self.killer_moves[depth]:
+            legal_moves = [move for move in self.killer_moves[depth] if move in legal_moves] + legal_moves
+
         if minimizing_player:
             min_eval = float('inf')
             for move in legal_moves:
@@ -51,6 +33,11 @@ class Engine:
                 if beta <= alpha:
                     break
             self.transposition_table[key] = min_eval
+
+            if min_eval < beta:
+                self.killer_moves[depth][1] = self.killer_moves[depth][0]
+                self.killer_moves[depth][0] = legal_moves[0]
+
             return min_eval
         else:
             max_eval = float('-inf')
@@ -63,6 +50,12 @@ class Engine:
                 if beta <= alpha:
                     break
             self.transposition_table[key] = max_eval
+
+            # Update killer moves
+            if max_eval > alpha:
+                self.killer_moves[depth][1] = self.killer_moves[depth][0]
+                self.killer_moves[depth][0] = legal_moves[0]
+
             return max_eval
 
 
